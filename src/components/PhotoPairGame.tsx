@@ -67,40 +67,117 @@ const shuffleArray = (array: string[]) => {
   return array;
 };
 
-// Shuffle pairs - keep some together, randomly place others
+// Shuffle pairs - keep some together (horizontally or vertically), randomly place others
 const shufflePairsPartiallyTogether = (pairs: string[]) => {
-  // Create array of pairs
-  const pairedArray: Array<[string, string]> = [];
-  for (let i = 0; i < pairs.length; i += 2) {
-    pairedArray.push([pairs[i], pairs[i + 1]]);
-  }
+  // pairs is length 36 where pairs[0..35] are images (each image appears twice)
+  const totalPairs = pairs.length / 2; // 18
 
-  // Decide which pairs to keep together (about 75%)
-  const result: string[] = [];
-  const usedPairs = new Set<number>();
+  // Build mapping from visual grid position to card index value (heartLayout)
+  const flatLayout = heartLayout.flat(); // length 63 (9 cols * 7 rows)
+  const cols = 9;
 
-  // First pass: randomly place some pairs together
-  for (let i = 0; i < pairedArray.length; i++) {
-    if (Math.random() > 0.25) {
-      // Keep this pair together
-      result.push(pairedArray[i][0], pairedArray[i][1]);
-      usedPairs.add(i);
+  // Build coord map for each card index value -> {row, col}
+  const coordByIndex: Record<number, { row: number; col: number }> = {};
+  flatLayout.forEach((val, flatPos) => {
+    if (val !== null) {
+      coordByIndex[val] = { row: Math.floor(flatPos / cols), col: flatPos % cols };
     }
-  }
+  });
 
-  // Collect remaining individual cards
-  const remainingCards: string[] = [];
-  for (let i = 0; i < pairedArray.length; i++) {
-    if (!usedPairs.has(i)) {
-      remainingCards.push(pairedArray[i][0], pairedArray[i][1]);
+  // Build adjacency list of index pairs (horizontal and vertical neighbors)
+  const adjacencyPairs: Array<[number, number]> = [];
+  Object.keys(coordByIndex).forEach((k) => {
+    const i = Number(k);
+    const { row, col } = coordByIndex[i];
+    // check right neighbor
+    const rightFlat = row * cols + (col + 1);
+    const downFlat = (row + 1) * cols + col;
+    const rightIndex = flatLayout[rightFlat];
+    const downIndex = flatLayout[downFlat];
+    if (typeof rightIndex === 'number') {
+      const a = Math.min(i, rightIndex);
+      const b = Math.max(i, rightIndex);
+      adjacencyPairs.push([a, b]);
     }
+    if (typeof downIndex === 'number') {
+      const a = Math.min(i, downIndex);
+      const b = Math.max(i, downIndex);
+      adjacencyPairs.push([a, b]);
+    }
+  });
+
+  // Unique adjacency pairs
+  const uniqueAdj: Array<[number, number]> = [];
+  const seen = new Set<string>();
+  adjacencyPairs.forEach(([a, b]) => {
+    const key = `${a},${b}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueAdj.push([a, b]);
+    }
+  });
+
+  // Decide how many pairs to keep together (~75%)
+  const pairsToKeep = Math.round(totalPairs * 0.75);
+
+  // Prepare result array of length 36 filled with nulls
+  const result: Array<string | null> = Array(pairs.length).fill(null);
+
+  // Track used indices
+  const usedIndices = new Set<number>();
+
+  // Shuffle adjacency candidates
+  const adjCandidates = shuffleArray(uniqueAdj.slice());
+
+  // Assign pairs to adjacent slots
+  let assignedPairs = 0;
+  for (let i = 0; i < adjCandidates.length && assignedPairs < pairsToKeep; i++) {
+    const [a, b] = adjCandidates[i];
+    if (usedIndices.has(a) || usedIndices.has(b)) continue;
+    // mark indices reserved
+    usedIndices.add(a);
+    usedIndices.add(b);
+    assignedPairs++;
   }
 
-  // Shuffle remaining cards
-  const shuffledRemaining = shuffleArray(remainingCards);
+  // Build image pool (each unique image appears twice)
+  const imagePool: string[] = pairs.slice();
 
-  // Combine: paired cards + shuffled remaining cards
-  return result.concat(shuffledRemaining);
+  // Helper: place a specific image into two indices
+  const placeImageAt = (img: string, idx1: number, idx2: number) => {
+    result[idx1] = img;
+    result[idx2] = img;
+  };
+
+  // 1) Fill the reserved adjacency slots with random image pairs
+  const reservedAdj = Array.from(usedIndices);
+  // group reservedAdj into pairs according to adjCandidates order
+  let placed = 0;
+  for (let i = 0; i < adjCandidates.length && placed < assignedPairs; i++) {
+    const [a, b] = adjCandidates[i];
+    if (result[a] !== null || result[b] !== null) continue;
+    // pick a random image from imagePool
+    const img = imagePool.pop();
+    if (!img) break;
+    const dupIndex = imagePool.findIndex((x) => x === img);
+    if (dupIndex !== -1) imagePool.splice(dupIndex, 1);
+    placeImageAt(img, a, b);
+    placed++;
+  }
+
+  // 2) Collect remaining empty indices
+  const remainingIndices: number[] = [];
+  for (let idx = 0; idx < result.length; idx++) if (result[idx] === null) remainingIndices.push(idx);
+
+  // 3) Shuffle remaining images and place them into remaining indices
+  const shuffledRemainingImages = shuffleArray(imagePool.slice());
+  for (let i = 0; i < remainingIndices.length; i++) {
+    const img = shuffledRemainingImages[i];
+    result[remainingIndices[i]] = img;
+  }
+
+  // All slots should be filled now
+  return result.map((r) => (r === null ? pairs[0] : r));
 };
 
 const heartLayout = [
@@ -427,7 +504,7 @@ export default function PhotoPairGame({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="grid grid-cols-9 gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 p-2 sm:p-4 max-w-full overflow-hidden">
+        <div className="grid grid-cols-9 grid-rows-7 gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 p-2 sm:p-4 max-w-full overflow-hidden">
           {/* Image preload */}
           <div className="hidden">
             {shuffled.map((image, i) => (
