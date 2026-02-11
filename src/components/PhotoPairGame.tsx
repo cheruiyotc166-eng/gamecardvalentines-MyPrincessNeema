@@ -67,6 +67,42 @@ const shuffleArray = (array: string[]) => {
   return array;
 };
 
+// Shuffle pairs - keep some together, randomly place others
+const shufflePairsPartiallyTogether = (pairs: string[]) => {
+  // Create array of pairs
+  const pairedArray: Array<[string, string]> = [];
+  for (let i = 0; i < pairs.length; i += 2) {
+    pairedArray.push([pairs[i], pairs[i + 1]]);
+  }
+  
+  // Decide which pairs to keep together (about 50%)
+  const result: string[] = [];
+  const usedPairs = new Set<number>();
+  
+  // First pass: randomly place some pairs together
+  for (let i = 0; i < pairedArray.length; i++) {
+    if (Math.random() > 0.5) {
+      // Keep this pair together
+      result.push(pairedArray[i][0], pairedArray[i][1]);
+      usedPairs.add(i);
+    }
+  }
+  
+  // Collect remaining individual cards
+  const remainingCards: string[] = [];
+  for (let i = 0; i < pairedArray.length; i++) {
+    if (!usedPairs.has(i)) {
+      remainingCards.push(pairedArray[i][0], pairedArray[i][1]);
+    }
+  }
+  
+  // Shuffle remaining cards
+  const shuffledRemaining = shuffleArray(remainingCards);
+  
+  // Combine: paired cards + shuffled remaining cards
+  return result.concat(shuffledRemaining);
+};
+
 const heartLayout = [
   [null, null, 0, 1, null, 2, 3, null, null],
   [null, 4, 5, 6, 7, 8, 9, 10, null],
@@ -87,7 +123,7 @@ export default function PhotoPairGame({
   const [selected, setSelected] = useState<number[]>([]);
   const [matched, setMatched] = useState<number[]>([]);
   const [incorrect, setIncorrect] = useState<number[]>([]);
-  const [shuffled] = useState(() => shuffleArray([...imagePairs]));
+  const [shuffled] = useState(() => shufflePairsPartiallyTogether([...imagePairs]));
 
   const [moves, setMoves] = useState(0);
   const [seconds, setSeconds] = useState(0);
