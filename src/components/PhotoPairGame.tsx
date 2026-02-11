@@ -1,52 +1,52 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import Image from "next/image";
-import { useState, useEffect } from "react";
-import Fireworks from "@fireworks-js/react";
+import { motion } from 'framer-motion';
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import Fireworks from '@fireworks-js/react';
 
 // 18 unique images
 const baseImages = [
-  "/game-photos/1.jpg",
-  "/game-photos/2.jpg",
-  "/game-photos/3.jpg",
-  "/game-photos/4.jpg",
-  "/game-photos/5.jpg",
-  "/game-photos/6.jpg",
-  "/game-photos/7.jpg",
-  "/game-photos/8.jpg",
-  "/game-photos/9.jpg",
-  "/game-photos/10.jpg",
-  "/game-photos/11.jpg",
-  "/game-photos/12.jpg",
-  "/game-photos/13.jpg",
-  "/game-photos/14.jpg",
-  "/game-photos/15.jpg",
-  "/game-photos/16.jpg",
-  "/game-photos/17.jpg",
-  "/game-photos/18.jpg",
+  '/game-photos/1.jpg',
+  '/game-photos/2.jpg',
+  '/game-photos/3.jpg',
+  '/game-photos/4.jpg',
+  '/game-photos/5.jpg',
+  '/game-photos/6.jpg',
+  '/game-photos/7.jpg',
+  '/game-photos/8.jpg',
+  '/game-photos/9.jpg',
+  '/game-photos/10.jpg',
+  '/game-photos/11.jpg',
+  '/game-photos/12.jpg',
+  '/game-photos/13.jpg',
+  '/game-photos/14.jpg',
+  '/game-photos/15.jpg',
+  '/game-photos/16.jpg',
+  '/game-photos/17.jpg',
+  '/game-photos/18.jpg',
 ];
 
 // Captions for each photo (edit these to be more personal)
 const captions = [
-  "You make my heart race",
-  "In your eyes, I found home",
-  "Every day with you is a gift",
+  'You make my heart race',
+  'In your eyes, I found home',
+  'Every day with you is a gift',
   "You're my favorite person",
-  "My heart chose you",
-  "Love looks like you",
+  'My heart chose you',
+  'Love looks like you',
   "You're my dream come true",
-  "Forever with you feels right",
-  "Your smile brightens my day",
-  "You complete my world",
-  "I fall for you every day",
-  "My soul recognizes yours",
+  'Forever with you feels right',
+  'Your smile brightens my day',
+  'You complete my world',
+  'I fall for you every day',
+  'My soul recognizes yours',
   "You're worth every moment",
-  "Together is my favorite place",
+  'Together is my favorite place',
   "You're my greatest adventure",
-  "My heart beats for you",
+  'My heart beats for you',
   "You're simply unforgettable",
-  "Our love is eternal",
+  'Our love is eternal',
 ];
 
 // Create 18 pairs of images (36 images in total)
@@ -54,9 +54,9 @@ const imagePairs = baseImages.flatMap((image) => [image, image]);
 
 // Messages shown when specific images are matched (keyed by filename number)
 const specialMessages: Record<string, string> = {
-  "1": "From the moment I saw you, I knew.",
-  "9": "Your presence makes my world complete.",
-  "18": "With you, forever feels too short.",
+  '1': 'From the moment I saw you, I knew.',
+  '9': 'Your presence makes my world complete.',
+  '18': 'With you, forever feels too short.',
 };
 
 const shuffleArray = (array: string[]) => {
@@ -74,20 +74,20 @@ const shufflePairsPartiallyTogether = (pairs: string[]) => {
   for (let i = 0; i < pairs.length; i += 2) {
     pairedArray.push([pairs[i], pairs[i + 1]]);
   }
-  
-  // Decide which pairs to keep together (about 50%)
+
+  // Decide which pairs to keep together (about 75%)
   const result: string[] = [];
   const usedPairs = new Set<number>();
-  
+
   // First pass: randomly place some pairs together
   for (let i = 0; i < pairedArray.length; i++) {
-    if (Math.random() > 0.5) {
+    if (Math.random() > 0.25) {
       // Keep this pair together
       result.push(pairedArray[i][0], pairedArray[i][1]);
       usedPairs.add(i);
     }
   }
-  
+
   // Collect remaining individual cards
   const remainingCards: string[] = [];
   for (let i = 0; i < pairedArray.length; i++) {
@@ -95,10 +95,10 @@ const shufflePairsPartiallyTogether = (pairs: string[]) => {
       remainingCards.push(pairedArray[i][0], pairedArray[i][1]);
     }
   }
-  
+
   // Shuffle remaining cards
   const shuffledRemaining = shuffleArray(remainingCards);
-  
+
   // Combine: paired cards + shuffled remaining cards
   return result.concat(shuffledRemaining);
 };
@@ -123,14 +123,16 @@ export default function PhotoPairGame({
   const [selected, setSelected] = useState<number[]>([]);
   const [matched, setMatched] = useState<number[]>([]);
   const [incorrect, setIncorrect] = useState<number[]>([]);
-  const [shuffled] = useState(() => shufflePairsPartiallyTogether([...imagePairs]));
+  const [shuffled] = useState(() =>
+    shufflePairsPartiallyTogether([...imagePairs])
+  );
 
   const [moves, setMoves] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const [specialMessage, setSpecialMessage] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
-  
+
   // Stats tracking
   const [bestTime, setBestTime] = useState<number | null>(null);
   const [bestMoves, setBestMoves] = useState<number | null>(null);
@@ -138,7 +140,7 @@ export default function PhotoPairGame({
 
   // Load stats from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem("valentineGameStats");
+    const saved = localStorage.getItem('valentineGameStats');
     if (saved) {
       try {
         const stats = JSON.parse(saved);
@@ -152,27 +154,35 @@ export default function PhotoPairGame({
   }, []);
 
   // Sound effect utility
-  const playSound = (type: "flip" | "match" | "win") => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const playSound = (type: 'flip' | 'match' | 'win') => {
+    const audioContext = new (
+      window.AudioContext || (window as any).webkitAudioContext
+    )();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    if (type === "flip") {
+    if (type === 'flip') {
       oscillator.frequency.value = 600;
       gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.1
+      );
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.1);
-    } else if (type === "match") {
+    } else if (type === 'match') {
       oscillator.frequency.value = 800;
       gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.2
+      );
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.2);
-    } else if (type === "win") {
+    } else if (type === 'win') {
       // Play a chord for victory
       const notes = [523, 659, 784]; // C, E, G
       notes.forEach((freq, i) => {
@@ -183,7 +193,10 @@ export default function PhotoPairGame({
         osc.stop(audioContext.currentTime + 0.5 + i * 0.1);
       });
       gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.6
+      );
     }
   };
 
@@ -199,12 +212,17 @@ export default function PhotoPairGame({
   };
 
   const handleClick = async (index: number) => {
-    if (selected.length === 2 || matched.includes(index) || selected.includes(index)) return;
+    if (
+      selected.length === 2 ||
+      matched.includes(index) ||
+      selected.includes(index)
+    )
+      return;
 
     // Start timer on first interaction
     if (!timerRunning) setTimerRunning(true);
-    
-    playSound("flip");
+
+    playSound('flip');
 
     if (selected.length === 1) {
       const firstIndex = selected[0];
@@ -212,7 +230,7 @@ export default function PhotoPairGame({
       setSelected((prev) => [...prev, index]);
 
       if (shuffled[firstIndex] === shuffled[index]) {
-        playSound("match");
+        playSound('match');
         setMatched((prev) => [...prev, firstIndex, index]);
         // Check for special message for this image
         const matchedSrc = shuffled[firstIndex];
@@ -239,27 +257,35 @@ export default function PhotoPairGame({
     if (matched.length === imagePairs.length && matched.length > 0) {
       setTimerRunning(false);
       setShowConfetti(true);
-      playSound("win");
-      
+      playSound('win');
+
       // Update stats
       const isNewBestTime = bestTime === null || seconds < bestTime;
       const isNewBestMoves = bestMoves === null || moves < bestMoves;
       const newBestTime = isNewBestTime ? seconds : bestTime;
       const newBestMoves = isNewBestMoves ? moves : bestMoves;
-      
+
       const stats = {
         bestTime: newBestTime,
         bestMoves: newBestMoves,
         gamesPlayed: gamesPlayed + 1,
       };
-      localStorage.setItem("valentineGameStats", JSON.stringify(stats));
-      
+      localStorage.setItem('valentineGameStats', JSON.stringify(stats));
+
       setTimeout(() => {
         setShowConfetti(false);
         handleShowProposal();
       }, 2000);
     }
-  }, [matched, handleShowProposal, bestTime, bestMoves, seconds, moves, gamesPlayed]);
+  }, [
+    matched,
+    handleShowProposal,
+    bestTime,
+    bestMoves,
+    seconds,
+    moves,
+    gamesPlayed,
+  ]);
 
   return (
     <div className="w-full flex flex-col items-center justify-center gap-4 p-2 sm:p-4 min-h-screen">
@@ -285,9 +311,9 @@ export default function PhotoPairGame({
               autoresize: true,
             }}
             style={{
-              width: "100%",
-              height: "100%",
-              position: "fixed",
+              width: '100%',
+              height: '100%',
+              position: 'fixed',
               top: 0,
               left: 0,
             }}
@@ -319,7 +345,9 @@ export default function PhotoPairGame({
           whileHover={{ scale: 1.05 }}
         >
           <div className="text-sm">⏱️ Time</div>
-          <div className="text-2xl">{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}</div>
+          <div className="text-2xl">
+            {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
+          </div>
         </motion.div>
 
         <motion.div
@@ -336,7 +364,10 @@ export default function PhotoPairGame({
             whileHover={{ scale: 1.05 }}
           >
             <div className="text-sm">🏆 Best</div>
-            <div className="text-lg">{Math.floor(bestTime / 60)}:{String(bestTime % 60).padStart(2, "0")} • {bestMoves} moves</div>
+            <div className="text-lg">
+              {Math.floor(bestTime / 60)}:
+              {String(bestTime % 60).padStart(2, '0')} • {bestMoves} moves
+            </div>
           </motion.div>
         )}
 
@@ -354,8 +385,12 @@ export default function PhotoPairGame({
       {/* Progress Bar */}
       <div className="w-full max-w-4xl">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-semibold text-gray-700">Cards Matched: {matched.length / 2} / 18</span>
-          <span className="text-xs text-gray-500">{Math.round((matched.length / imagePairs.length) * 100)}%</span>
+          <span className="text-sm font-semibold text-gray-700">
+            Cards Matched: {matched.length / 2} / 18
+          </span>
+          <span className="text-xs text-gray-500">
+            {Math.round((matched.length / imagePairs.length) * 100)}%
+          </span>
         </div>
         <motion.div
           className="w-full h-3 bg-gray-200 rounded-full overflow-hidden shadow-md"
@@ -365,8 +400,10 @@ export default function PhotoPairGame({
           <motion.div
             className="h-full bg-gradient-to-r from-red-400 to-pink-500 rounded-full shadow-lg"
             initial={{ width: 0 }}
-            animate={{ width: `${(matched.length / imagePairs.length) * 100}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            animate={{
+              width: `${(matched.length / imagePairs.length) * 100}%`,
+            }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
           />
         </motion.div>
       </div>
@@ -411,9 +448,9 @@ export default function PhotoPairGame({
                 key={i}
                 className="relative cursor-pointer"
                 style={{
-                  width: "clamp(2rem, 8vw, 5rem)",
-                  height: "clamp(2rem, 8vw, 5rem)",
-                  perspective: "1000px",
+                  width: 'clamp(2rem, 8vw, 5rem)',
+                  height: 'clamp(2rem, 8vw, 5rem)',
+                  perspective: '1000px',
                 }}
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.95 }}
@@ -431,11 +468,11 @@ export default function PhotoPairGame({
                           : 0,
                       boxShadow:
                         selected.includes(index) || matched.includes(index)
-                          ? "0 0 20px rgba(239, 68, 68, 0.8)"
-                          : "0 10px 15px rgba(0, 0, 0, 0.1)",
+                          ? '0 0 20px rgba(239, 68, 68, 0.8)'
+                          : '0 10px 15px rgba(0, 0, 0, 0.1)',
                     }}
                     transition={{ duration: 0.5 }}
-                    style={{ backfaceVisibility: "hidden" }}
+                    style={{ backfaceVisibility: 'hidden' }}
                   />
                 )}
 
@@ -450,11 +487,11 @@ export default function PhotoPairGame({
                           ? 0
                           : 180,
                       boxShadow: matched.includes(index)
-                        ? "0 0 30px rgba(236, 72, 153, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.3)"
-                        : "0 10px 15px rgba(0, 0, 0, 0.1)",
+                        ? '0 0 30px rgba(236, 72, 153, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.3)'
+                        : '0 10px 15px rgba(0, 0, 0, 0.1)',
                     }}
                     transition={{ duration: 0.5 }}
-                    style={{ backfaceVisibility: "hidden" }}
+                    style={{ backfaceVisibility: 'hidden' }}
                   >
                     <Image
                       src={shuffled[index]}
@@ -480,11 +517,11 @@ export default function PhotoPairGame({
               <div
                 key={i}
                 style={{
-                  width: "clamp(2rem, 8vw, 5rem)",
-                  height: "clamp(2rem, 8vw, 5rem)",
+                  width: 'clamp(2rem, 8vw, 5rem)',
+                  height: 'clamp(2rem, 8vw, 5rem)',
                 }}
               />
-            ),
+            )
           )}
         </div>
       </motion.div>
