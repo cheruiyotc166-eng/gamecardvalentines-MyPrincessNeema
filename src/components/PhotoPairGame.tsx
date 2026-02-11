@@ -59,7 +59,7 @@ const specialMessages: Record<string, string> = {
   '18': 'With you, forever feels too short.',
 };
 
-const shuffleArray = (array: string[]) => {
+const shuffleArray = <T,>(array: T[]) => {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
@@ -80,7 +80,10 @@ const shufflePairsPartiallyTogether = (pairs: string[]) => {
   const coordByIndex: Record<number, { row: number; col: number }> = {};
   flatLayout.forEach((val, flatPos) => {
     if (val !== null) {
-      coordByIndex[val] = { row: Math.floor(flatPos / cols), col: flatPos % cols };
+      coordByIndex[val] = {
+        row: Math.floor(flatPos / cols),
+        col: flatPos % cols,
+      };
     }
   });
 
@@ -131,7 +134,11 @@ const shufflePairsPartiallyTogether = (pairs: string[]) => {
 
   // Assign pairs to adjacent slots
   let assignedPairs = 0;
-  for (let i = 0; i < adjCandidates.length && assignedPairs < pairsToKeep; i++) {
+  for (
+    let i = 0;
+    i < adjCandidates.length && assignedPairs < pairsToKeep;
+    i++
+  ) {
     const [a, b] = adjCandidates[i];
     if (usedIndices.has(a) || usedIndices.has(b)) continue;
     // mark indices reserved
@@ -167,7 +174,8 @@ const shufflePairsPartiallyTogether = (pairs: string[]) => {
 
   // 2) Collect remaining empty indices
   const remainingIndices: number[] = [];
-  for (let idx = 0; idx < result.length; idx++) if (result[idx] === null) remainingIndices.push(idx);
+  for (let idx = 0; idx < result.length; idx++)
+    if (result[idx] === null) remainingIndices.push(idx);
 
   // 3) Shuffle remaining images and place them into remaining indices
   const shuffledRemainingImages = shuffleArray(imagePool.slice());
