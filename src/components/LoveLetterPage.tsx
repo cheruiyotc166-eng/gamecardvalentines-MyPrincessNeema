@@ -10,7 +10,7 @@ const playfairDisplay = Playfair_Display({
 });
 
 export default function LoveLetterPage({ onNext }: { onNext: () => void }) {
-  const letterContent = `My love, 💕
+  const letterContent = `My love Neema, 💕
 
 I just wanted to remind you how much you 
 mean to me. Every day with you feels warmer, 
@@ -23,7 +23,9 @@ place to return to. 🧸
 
 I'm so grateful for you. Always. 💝
 
-I love you so much 💕`;
+I love you so much Neema 💕
+
+From Levin`;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-pink-200 via-rose-200 to-red-200 p-4 overflow-hidden">
